@@ -12,11 +12,63 @@ import java.util.LinkedList;
  */
 public class HTTPFacade {
         private static final String USER_AGENT = "Mozilla/5.0";
-    private static final String GET_URL = "https:localhost:36000/Backend";
+    private static final String GET_URL = "https:localhost:36000";
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, URISyntaxException {
+        ServerSocket serverSocket = null;
+        try {
+            serverSocket = new ServerSocket(37000);
+        } catch (IOException e) {
+            System.err.println("Could not listen on port: 35000.");
+            System.exit(1);
+        }
+        
+        Socket clientSocket = null;
+        boolean running = true;
+        while (running){
+        try {
+            System.out.println("Listo para recibir ...");
+            clientSocket = serverSocket.accept();
+        } catch (IOException e) {
+            System.err.println("Accept failed.");
+            System.exit(1);
+        }
 
-        URL obj = new URL(GET_URL);
+        PrintWriter out = new PrintWriter(
+                clientSocket.getOutputStream(), true);
+        BufferedReader in = new BufferedReader(
+                new InputStreamReader(clientSocket.getInputStream()));
+        String inputLine, outputLine = null;
+            boolean first = true;
+            String reqUriString = null;
+            while ((inputLine = in.readLine()) != null) {
+                if (first) {
+                    System.out.println("URI: " + inputLine);
+                    reqUriString = inputLine.split(" ")[1];
+                }
+                System.out.println("Recibí: " + inputLine);
+                if (!in.ready()) {
+                    break;
+                }
+                first = false;
+
+            }
+            System.out.println("URI: " + reqUriString);
+            if (reqUriString.startsWith("/Client")) {
+                facade(reqUriString);
+            } 
+            out.println(outputLine);
+            out.close();
+            in.close();
+        }
+        
+        clientSocket.close();
+        serverSocket.close();
+
+    }
+    public static void facade(String path) throws IOException {
+        
+        URL obj = new URL(GET_URL+path);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         con.setRequestMethod("GET");
         con.setRequestProperty("User-Agent", USER_AGENT);
@@ -43,5 +95,5 @@ public class HTTPFacade {
         }
         System.out.println("GET DONE");
     }
-
+    
 }

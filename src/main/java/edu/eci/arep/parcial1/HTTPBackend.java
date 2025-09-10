@@ -49,7 +49,6 @@ public class HTTPBackend {
         String inputLine, outputLine = null;
         boolean running = true;
         while (running) {
-            
             boolean first = true;
             String reqUriString = null;
             while ((inputLine = in.readLine()) != null) {
